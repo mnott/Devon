@@ -8,13 +8,11 @@ DEVONthink MCP server for Claude Code. Zero-config setup — one command and you
 
 ## Quick start
 
-If you already have Claude Code, just say:
+If you have Claude Code, just ask:
 
-```
-install devon
-```
+> "Hey Claude, clone Devon from github.com/mnott/Devon and set it up for me"
 
-Claude will check prerequisites, configure `~/.claude.json`, and enable the server automatically.
+Claude will clone the repo, build it, configure `~/.claude.json`, and enable the server. Restart Claude Code and all 33 DEVONthink tools are available.
 
 ---
 
@@ -49,13 +47,11 @@ With this server running, Claude Code can:
 
 ### Option 1: Ask Claude (recommended)
 
-In Claude Code, just say:
+In Claude Code, ask Claude to set it up:
 
-```
-install devon
-```
+> "Clone Devon from github.com/mnott/Devon into ~/dev/ai and configure it"
 
-Claude handles prerequisites, configuration, and enablement via the DEVONthink skill's install workflow.
+Claude clones, builds, configures `~/.claude.json`, and enables the MCP server.
 
 ### Option 2: Setup wizard
 
@@ -65,22 +61,7 @@ npx @tekmidian/devon setup
 
 Interactive CLI that checks prerequisites, configures `~/.claude.json`, and enables the server.
 
-### Option 3: npx (manual config)
-
-Add to `~/.claude.json` manually (see [Manual configuration](#manual-configuration) below), then:
-
-```bash
-npx @tekmidian/devon serve
-```
-
-### Option 4: Global install
-
-```bash
-npm install -g @tekmidian/devon
-devon setup
-```
-
-### Option 5: Clone and build
+### Option 3: Clone and build
 
 ```bash
 git clone https://github.com/mnott/Devon ~/dev/ai/devon
