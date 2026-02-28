@@ -1,0 +1,48 @@
+{
+  "name": "@tekmidian/devon",
+  "version": "3.0.0",
+  "description": "DEVONthink MCP server for Claude Code. Zero-config setup with automatic Claude configuration.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "devon": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "devonthink",
+    "claude",
+    "claude-code",
+    "mcp-server",
+    "macos",
+    "document-management",
+    "applescript"
+  ],
+  "license": "MIT",
+  "author": "Matthias Nott",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnott/Devon.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.0.1",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.7"
+  }
+}
