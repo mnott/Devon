@@ -181,6 +181,7 @@ export const parseEmlHeadersTool: McpTool = {
       },
     },
     required: ["filePath"],
+    additionalProperties: false,
   },
   run: parseEmlHeaders,
 };

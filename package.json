@@ -1,6 +1,6 @@
 {
   "name": "@tekmidian/devon",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "DEVONthink MCP server for Claude Code. Zero-config setup with automatic Claude configuration.",
   "type": "module",
   "main": "dist/index.js",

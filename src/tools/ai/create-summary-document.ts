@@ -32,7 +32,6 @@ export const createSummaryDocumentTool = defineTool({
       .describe("UUIDs of the source DEVONthink records to summarize"),
     summaryType: z
       .enum(SUMMARY_TYPE_VALUES)
-      .default("markdown")
       .optional()
       .describe(
         "Output format for the summary document. " +

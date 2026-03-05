@@ -111,7 +111,7 @@ export const listSmartGroupsTool: McpTool = {
   inputSchema: {
     type: "object" as const,
     properties: {},
-    required: [],
+    additionalProperties: false,
   },
   run: listSmartGroups,
 };

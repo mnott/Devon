@@ -39,7 +39,6 @@ export const askAiAboutDocumentsTool = defineTool({
       .number()
       .min(0)
       .max(2)
-      .default(0.7)
       .optional()
       .describe("Sampling temperature for the AI response (0 = deterministic, 2 = creative). Defaults to 0.7"),
     model: z

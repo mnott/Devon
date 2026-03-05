@@ -122,7 +122,7 @@ export const listSmartRulesTool: McpTool = {
   inputSchema: {
     type: "object" as const,
     properties: {},
-    required: [],
+    additionalProperties: false,
   },
   run: listSmartRules,
 };

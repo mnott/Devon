@@ -28,6 +28,18 @@ interface DefineToolOptions<T extends z.ZodTypeAny> {
   run: (args: z.infer<T>, executor: JxaExecutor) => Promise<unknown>;
 }
 
+const STRIPPED_KEYS = new Set(["format", "default"]);
+
+function stripKeys(obj: Record<string, unknown>): void {
+  for (const key of Object.keys(obj)) {
+    if (STRIPPED_KEYS.has(key)) {
+      delete obj[key];
+    } else if (typeof obj[key] === "object" && obj[key] !== null) {
+      stripKeys(obj[key] as Record<string, unknown>);
+    }
+  }
+}
+
 /**
  * Factory that creates an McpTool from a Zod schema and a run function.
  *
@@ -40,12 +52,14 @@ export function defineTool<T extends z.ZodTypeAny>(
 ): McpTool {
   const jsonSchema = zodToJsonSchema(opts.schema, {
     $refStrategy: "none",
-    target: "openApi3",
   });
 
-  // Remove the top-level $schema and additionalProperties keys that
-  // zodToJsonSchema adds — MCP servers typically don't include these.
+  // Remove the top-level $schema key that zodToJsonSchema adds.
   const { $schema: _, ...schemaBody } = jsonSchema as Record<string, unknown>;
+
+  // Strip keys that Claude API rejects (not valid in JSON Schema 2020-12
+  // as used by the API): "format", "default".
+  stripKeys(schemaBody);
 
   return {
     name: opts.name,

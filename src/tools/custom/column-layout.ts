@@ -172,6 +172,7 @@ export const getColumnLayoutTool: McpTool = {
       },
     },
     required: ["name"],
+    additionalProperties: false,
   },
   run: getColumnLayout,
 };
@@ -312,6 +313,7 @@ export const copyColumnLayoutTool: McpTool = {
       },
     },
     required: ["sourceName", "targetName"],
+    additionalProperties: false,
   },
   run: copyColumnLayout,
 };
