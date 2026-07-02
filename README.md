@@ -2,7 +2,7 @@
 
 DEVONthink MCP server for Claude Code. Zero-config setup — one command and you're done.
 
-33 tools for full DEVONthink integration — search, CRUD, AI, tags, smart groups, email threading, and more. All MIT-licensed, zero external dependencies beyond the MCP SDK.
+The focused complement to DEVONthink 4.2's **built-in** MCP server. DEVONthink now ships its own MCP server covering generic search, reads, and CRUD — so Devon deliberately exposes only the **15 tools where it does something the native server can't**: smart-group and smart-rule introspection, column layouts, `.eml` header parsing, richer web capture, incremental tagging, and parameterized AI. All MIT-licensed, zero external dependencies beyond the MCP SDK. Run both servers side by side.
 
 ---
 
@@ -12,22 +12,22 @@ If you have Claude Code, just ask:
 
 > "Hey Claude, clone Devon from github.com/mnott/Devon and set it up for me"
 
-Claude will clone the repo, build it, configure `~/.claude.json`, and enable the server. Restart Claude Code and all 33 DEVONthink tools are available.
+Claude will clone the repo, build it, configure `~/.claude.json`, and enable the server. Restart Claude Code and Devon's tools are available alongside DEVONthink's built-in MCP server.
 
 ---
 
 ## What it provides
 
-With this server running, Claude Code can:
+Devon fills the gaps in DEVONthink's built-in MCP server. With it running, Claude Code can:
 
-- Search and browse all open DEVONthink databases
-- Read document content (PDFs, Markdown, plain text, HTML, rich text)
-- Create, update, and delete records
-- Move, replicate, duplicate, and convert records across groups
-- Add and remove tags, classify documents, manage metadata
-- Ask DEVONthink's built-in AI about documents and create summaries
-- Cross-reference emails with archived documents
-- List and navigate database groups
+- Enumerate **smart groups** and **smart rules** (read straight from DEVONthink's plists — the native scripting API doesn't expose these)
+- Read and copy **column layouts** for smart groups and rules
+- Parse **`.eml` MIME headers** (Message-ID, References, In-Reply-To) for email thread correlation
+- Capture web pages with **rich options** (format, readability, custom user-agent, referrer, PDF options)
+- Add and remove tags **incrementally** (the native tag tool only replaces the full set)
+- Ask DEVONthink's AI with **model / engine / temperature** control and create real **summary records**
+
+For generic full-text search, record reads, and CRUD, use DEVONthink's **built-in** MCP server — Devon does not duplicate it. See [Relationship to the built-in server](#relationship-to-the-built-in-devonthink-mcp-server).
 - List smart groups and smart rules (not accessible via AppleScript)
 - Parse EML headers for email thread correlation
 - Read and copy column layout configurations
@@ -101,94 +101,84 @@ Restart Claude Code after editing `~/.claude.json`.
 
 ---
 
+## Relationship to the built-in DEVONthink MCP server
+
+DEVONthink 4.2 ships its own MCP server inside the app bundle
+(`/Applications/DEVONthink.app/Contents/Library/LoginItems/DEVONthink MCP.app`),
+also reachable over HTTP. It exposes ~59 tools covering generic search, reads,
+CRUD, OCR, transcription, annotations, custom metadata, reminders, the link
+graph, and DOI/CrossRef research.
+
+Devon does **not** compete with it. Run both:
+
+- **Built-in `devonthink` server** — everything generic: `search_records`,
+  `get_record_text`, `get_record_properties`, `create_record`, `move_record`,
+  batch operations, and all the native-only capabilities above.
+- **Devon** — the 15-tool complement below: smart-group / smart-rule
+  introspection, column layouts, `.eml` headers, richer web capture,
+  incremental tagging, and parameterized AI — the things the built-in server
+  can't do.
+
+A full tool-by-tool capability differential lives in `Notes/`.
+
+---
+
 ## Tools
 
-All 33 tools organized by category.
+15 tools, each chosen because it does something DEVONthink's built-in MCP server can't (or does better).
 
-### Application
+### Smart groups, rules & layouts
 
-| Tool | Description |
-|------|-------------|
-| `is_running` | Check if DEVONthink is running |
-
-### Database
+Read directly from DEVONthink's plists — the native scripting API does not expose these.
 
 | Tool | Description |
 |------|-------------|
-| `get_open_databases` | List all open databases |
-| `current_database` | Get the frontmost database |
+| `list_smart_groups` | Enumerate all smart groups (sync UUID, `UseUUIDKey`) |
+| `list_smart_rules` | Enumerate all smart rules (enabled state, `indexOffset`, `lastExecution`) |
+| `get_column_layout` | Read column layout (order, visible columns, widths) for a smart group or rule |
+| `copy_column_layout` | Copy a column layout from one smart group/rule to another |
 
-### Records
-
-| Tool | Description |
-|------|-------------|
-| `create_record` | Create a new record (markdown, text, HTML, etc.) |
-| `delete_record` | Delete a record by UUID |
-| `get_record_by_identifier` | Get a record by UUID |
-| `get_record_properties` | Get metadata properties of a record |
-| `get_record_content` | Read the content of a record |
-| `update_record_content` | Update a record's content |
-| `set_record_properties` | Set metadata properties on a record |
-| `rename_record` | Rename a record |
-| `move_record` | Move a record to a different group or database |
-| `replicate_record` | Create a replicant of a record in another group |
-| `duplicate_record` | Create an independent copy of a record |
-| `convert_record` | Convert a record to a different type |
-
-### Groups
+### Email
 
 | Tool | Description |
 |------|-------------|
-| `list_group_content` | List contents of a group |
-| `selected_records` | Get currently selected records in DEVONthink |
+| `parse_eml_headers` | Extract Message-ID, References, In-Reply-To, etc. from .eml files |
 
-### Search
-
-| Tool | Description |
-|------|-------------|
-| `search` | Search across databases with DEVONthink query syntax |
-| `lookup_record` | Look up a record by name or path |
-
-### Tags
+### Web capture
 
 | Tool | Description |
 |------|-------------|
-| `add_tags` | Add tags to a record |
-| `remove_tags` | Remove tags from a record |
+| `create_from_url` | Capture a URL with `format`, `readability`, `userAgent`, `referrer`, `pdfOptions` (richer than native `capture_web_page`) |
 
-### Web
+### Tags (incremental)
 
-| Tool | Description |
-|------|-------------|
-| `create_from_url` | Create a record from a URL (markdown, PDF, web archive, formatted note) |
-
-### Intelligence
+The native `set_record_tags` replaces the entire tag set; these add/remove individual tags.
 
 | Tool | Description |
 |------|-------------|
-| `classify` | Classify a record using DEVONthink's AI classification |
-| `compare` | Compare two records for similarity |
+| `add_tags` | Add tags to a record without touching existing ones |
+| `remove_tags` | Remove specific tags from a record |
 
 ### AI
 
 | Tool | Description |
 |------|-------------|
-| `ask_ai_about_documents` | Ask DEVONthink's built-in AI a question about documents |
+| `ask_ai_about_documents` | Ask DEVONthink's AI with `model` / `engine` / `temperature` control (native `chat_response` is minimal) |
+| `create_summary_document` | Create a real DEVONthink summary **record** (native only returns text) |
 | `check_ai_health` | Check if DEVONthink's AI features are available |
-| `create_summary_document` | Create an AI-generated summary of documents |
 | `get_ai_tool_documentation` | Get documentation for DEVONthink's AI capabilities |
 
-### Custom extensions
-
-These five tools extend the core DEVONthink scripting API with functionality not available through AppleScript.
+### Lookup & database
 
 | Tool | Description |
 |------|-------------|
-| `list_smart_groups` | Enumerate all smart groups (reads plist directly) |
-| `list_smart_rules` | Enumerate all smart rules (reads plist directly) |
-| `parse_eml_headers` | Extract Message-ID, References, Subject, etc. from .eml files |
-| `get_column_layout` | Read column layout configuration for a smart group |
-| `copy_column_layout` | Copy column layout from one smart group to another |
+| `lookup_record` | Look up records — including by `tags` or `contentHash` (modes native lacks) |
+| `get_record_by_identifier` | Focused single-call fetch by UUID/identifier |
+| `current_database` | Get the frontmost database (no native equivalent) |
+
+### Delegated to the built-in server
+
+Devon intentionally does **not** ship these — DEVONthink's built-in MCP server does them as well or better (often with batch `uuids` support and its full query DSL): full-text `search_records`, `classify_record`, `find_similar_records`, `get_record_text` / `extract_record_content`, `get_record_properties`, `create_record`, `update_record`, `update_record_content`, `move_record`, `duplicate_record`, `replicate_record`, `convert_record`, `trash_record`, `get_databases`, `get_group_tree`, `get_selected_records`, `is_running`, plus everything native-only (OCR, transcription, annotations, custom metadata, reminders, link graph, DOI/CrossRef research, import/export, merge).
 
 ---
 
@@ -353,15 +343,15 @@ Smart groups are virtual views defined by search criteria — they are not part 
 list_smart_groups
 ```
 
-**Step 2:** Query the contents using `search` with `groupUuid`.
+**Step 2:** Query the contents using the built-in server's `search_records` with `group_uuid`.
 
 ```
-search
+search_records            (native devonthink server)
   query: ""
-  groupUuid: "4A469368-94FD-46D3-9A62-ED7C24D822D8"
+  group_uuid: "4A469368-94FD-46D3-9A62-ED7C24D822D8"
 ```
 
-> **Note:** `list_group_content` with a smart group UUID returns email Message-IDs in the `uuid` field (not DEVONthink record UUIDs). Use `search` with `groupUuid` instead — it returns proper records with dates and correct UUIDs.
+> **Note:** Devon supplies the smart-group UUID (via `list_smart_groups`); the native `search_records` tool scopes to it with `group_uuid` and returns proper DEVONthink records with dates and correct UUIDs. Devon no longer ships its own `search` / `list_group_content` — the built-in server covers those.
 
 ---
 
@@ -432,7 +422,7 @@ kind:email from:@company.com subject:"compensation" date:2023-01-01~2024-12-31
 
 ## How it works
 
-`devon` is a standalone MCP server built on `@modelcontextprotocol/sdk`. All 33 tools are implemented from scratch under the MIT license with no external dependencies beyond the MCP SDK.
+`devon` is a standalone MCP server built on `@modelcontextprotocol/sdk`. All 15 tools are implemented from scratch under the MIT license with no external dependencies beyond the MCP SDK.
 
 The tools communicate with DEVONthink via JXA (JavaScript for Automation) executed through `osascript`. A shared JXA executor handles script construction, escaping, and result parsing. The custom tools (smart groups, smart rules, column layouts) use `PlistBuddy` and Python's `plistlib` to read DEVONthink preference and data files directly.
 
@@ -466,7 +456,7 @@ The smart group does not yet have a custom column layout saved. Use `copy_column
 
 ## Credits
 
-This project was inspired by [dvcrn](https://github.com/dvcrn)'s [mcp-server-devonthink](https://github.com/dvcrn/mcp-server-devonthink), which demonstrated the potential of DEVONthink MCP integration. Version 3.0.0 is a clean-room rewrite — all 33 tools are independently implemented under the MIT license.
+This project was inspired by [dvcrn](https://github.com/dvcrn)'s [mcp-server-devonthink](https://github.com/dvcrn/mcp-server-devonthink), which demonstrated the potential of DEVONthink MCP integration. Version 3.0.0 was a clean-room rewrite; from v4.0.0 Devon narrows to the 15 tools that complement DEVONthink 4.2's own built-in MCP server rather than duplicating it. All tools are independently implemented under the MIT license.
 
 ---
 

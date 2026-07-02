@@ -1,7 +1,10 @@
 /**
  * server.ts — In-process MCP server for DEVONthink.
  *
- * All 33 tools are our own code under MIT — zero upstream dependency.
+ * Devon exposes only the tools where it beats or complements DEVONthink's
+ * built-in MCP server (all MIT, zero upstream dependency). Generic CRUD,
+ * full-text search, and batch ops are delegated to the native `devonthink`
+ * server — see Notes/ for the capability differential.
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -24,40 +27,45 @@ import { allTools } from "./tools/index.js";
 const INSTRUCTIONS = `
 ## DEVONthink MCP — Usage Guide
 
-Orchestrates workflows between DEVONthink (via this server) and Gmail for email archive retrieval,
-cross-referencing, and reply drafting.
+Devon provides the DEVONthink capabilities the built-in \`devonthink\` MCP server
+lacks (smart-group/rule introspection, column layouts, EML headers, richer web
+capture, incremental tagging, parameterized AI). For generic search, reads, and
+CRUD, call the native \`devonthink\` server — the routing table below names its
+tools explicitly.
 
 ### Pre-Action Defaults (apply before every tool call)
 
-- Smart group search: use \`search\` with \`groupUuid\`, NOT \`list_group_content\`
-  (search returns proper DEVONthink UUIDs; list_group_content returns Message-IDs)
+- Smart group search: native \`search_records\` with \`group_uuid\` (the UUID from
+  Devon's \`list_smart_groups\`) — returns proper DEVONthink UUIDs
 - Thread correlation: always attempt Tier 1 (EML headers) first, fall back to Tier 2/3
 - Mail import: report count of imported mails after script completes
-- Never delete records — only move to trash (recoverable)
+- Never delete records — only move to trash (recoverable; use native \`trash_record\`)
 - Never run Archive Mails without confirming user has reviewed inbox first
 
-### Tool Routing
+### Tool Routing (Devon = ours, native = built-in \`devonthink\` server)
 
 | Goal | Tool |
 |------|------|
-| List all smart groups | \`list_smart_groups\` |
-| Search within a smart group | \`search\` with \`groupUuid\` from list_smart_groups |
-| Get record metadata + file path | \`get_record_properties\` |
-| Read record body | \`get_record_content\` |
-| Extract MIME headers from .eml | \`parse_eml_headers\` |
-| Read/copy column layout | \`get_column_layout\` / \`copy_column_layout\` |
-| Enumerate smart rules | \`list_smart_rules\` |
+| List all smart groups | Devon \`list_smart_groups\` |
+| Enumerate smart rules | Devon \`list_smart_rules\` |
+| Read/copy column layout | Devon \`get_column_layout\` / \`copy_column_layout\` |
+| Extract MIME headers from .eml | Devon \`parse_eml_headers\` |
+| Capture a web page (rich options) | Devon \`create_from_url\` |
+| Add/remove tags incrementally | Devon \`add_tags\` / \`remove_tags\` |
+| Search (incl. within a smart group) | native \`search_records\` (with \`group_uuid\`) |
+| Get record metadata + file path | native \`get_record_properties\` |
+| Read record body | native \`get_record_text\` / \`extract_record_content\` |
 
 ### Common Workflows
 
-**A. Smart group review** — list_smart_groups → search(groupUuid) → get_record_content
+**A. Smart group review** — Devon \`list_smart_groups\` → native \`search_records\`(group_uuid) → native \`get_record_text\`
 
-**B. Email search** — search("kind:email subject:\\"<topic>\\"")
+**B. Email search** — native \`search_records\`("kind:email subject:\\"<topic>\\"")
 
 **C. Gmail cross-reference** — 3-tier strategy:
-  - Tier 1 (highest precision): parse_eml_headers → match Message-ID / References
-  - Tier 2: search("kind:email subject:\\"<normalized>\\" from:<domain>")
-  - Tier 3: search("kind:email subject:\\"<normalized>\\"")
+  - Tier 1 (highest precision): Devon \`parse_eml_headers\` → match Message-ID / References
+  - Tier 2: native \`search_records\`("kind:email subject:\\"<normalized>\\" from:<domain>")
+  - Tier 3: native \`search_records\`("kind:email subject:\\"<normalized>\\"")
   Always normalize subject: strip Re:/Fwd:/AW:/WG: prefixes, lowercase, trim.
 
 **D. Reply with archive context** — run C, synthesize 3–5 excerpts, draft via Gmail tool
@@ -92,7 +100,7 @@ export const createExtendedServer = async (): Promise<{
   const server = new Server(
     {
       name: "@tekmidian/devon",
-      version: "3.0.0",
+      version: "4.0.0",
     },
     {
       capabilities: {
