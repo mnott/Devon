@@ -2,7 +2,7 @@
 
 DEVONthink MCP server for Claude Code. Zero-config setup — one command and you're done.
 
-The focused complement to DEVONthink 4.2's **built-in** MCP server. DEVONthink now ships its own MCP server covering generic search, reads, and CRUD — so Devon deliberately exposes only the **15 tools where it does something the native server can't**: smart-group and smart-rule introspection, column layouts, `.eml` header parsing, richer web capture, incremental tagging, and parameterized AI. All MIT-licensed, zero external dependencies beyond the MCP SDK. Run both servers side by side.
+The focused complement to DEVONthink 4.3's **built-in** MCP server. DEVONthink now ships its own MCP server covering generic search, reads, and CRUD — so Devon deliberately exposes only the **15 tools where it does something the native server can't**: smart-group and smart-rule introspection, column layouts, `.eml` header parsing, richer web capture, incremental tagging, and parameterized AI. All MIT-licensed, zero external dependencies beyond the MCP SDK. Run both servers side by side.
 
 ---
 
@@ -103,7 +103,7 @@ Restart Claude Code after editing `~/.claude.json`.
 
 ## Relationship to the built-in DEVONthink MCP server
 
-DEVONthink 4.2 ships its own MCP server inside the app bundle
+DEVONthink 4.3 ("Herschel", released 2026-05-21) ships its own MCP server inside the app bundle
 (`/Applications/DEVONthink.app/Contents/Library/LoginItems/DEVONthink MCP.app`),
 also reachable over HTTP. It exposes ~59 tools covering generic search, reads,
 CRUD, OCR, transcription, annotations, custom metadata, reminders, the link
@@ -185,6 +185,34 @@ Devon intentionally does **not** ship these — DEVONthink's built-in MCP server
 ## Usage
 
 Once configured, Claude Code has access to all DEVONthink tools automatically. DEVONthink must be running with at least one database open.
+
+### Closed databases are invisible — open them before a "search everything" request
+
+DEVONthink searches only what is **open**. A closed database produces no hits and
+no warning, so a "nothing found" answer drawn from a partial set is *wrong, not
+empty* — and archives, the databases most likely to be sitting closed, are
+exactly where history lives.
+
+Devon ships this as part of its MCP instructions, so Claude should now open the
+missing databases on its own before answering. The procedure:
+
+```bash
+# 1. what is open, and where do those databases live
+osascript -e 'tell application id "DNtp" to get path of every database'
+
+# 2. list *.dtBase2 in those folders — anything not in step 1 is closed
+
+# 3. open each closed one, ONE PER CALL (a large archive can take minutes;
+#    batching several opens into one osascript call hits the 120s tool timeout)
+osascript -e 'tell application id "DNtp" to open database "/abs/path/Archive.dtBase2"'
+
+# 4. clear any "database was recovered / issues were found" dialog — it blocks
+#    the open until dismissed, and the database silently stays out of searches
+osascript -e 'tell application "System Events" to tell process "DEVONthink" to get name of windows'
+
+# 5. verify before searching
+osascript -e 'tell application id "DNtp" to get name of every database'
+```
 
 Example prompts:
 
@@ -456,7 +484,7 @@ The smart group does not yet have a custom column layout saved. Use `copy_column
 
 ## Credits
 
-This project was inspired by [dvcrn](https://github.com/dvcrn)'s [mcp-server-devonthink](https://github.com/dvcrn/mcp-server-devonthink), which demonstrated the potential of DEVONthink MCP integration. Version 3.0.0 was a clean-room rewrite; from v4.0.0 Devon narrows to the 15 tools that complement DEVONthink 4.2's own built-in MCP server rather than duplicating it. All tools are independently implemented under the MIT license.
+This project was inspired by [dvcrn](https://github.com/dvcrn)'s [mcp-server-devonthink](https://github.com/dvcrn/mcp-server-devonthink), which demonstrated the potential of DEVONthink MCP integration. Version 3.0.0 was a clean-room rewrite; from v4.0.0 Devon narrows to the 15 tools that complement DEVONthink 4.3's own built-in MCP server rather than duplicating it. All tools are independently implemented under the MIT license.
 
 ---
 

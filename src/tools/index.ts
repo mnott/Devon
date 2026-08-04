@@ -2,7 +2,7 @@
  * tools/index.ts — Barrel export of Devon's MCP tools.
  *
  * Devon deliberately exposes only the tools where it is BETTER THAN or
- * UNIQUE relative to DEVONthink 4.2's built-in MCP server. Everything the
+ * UNIQUE relative to DEVONthink 4.3's built-in MCP server. Everything the
  * native server does equally well or better (generic CRUD, full-text search,
  * classify/compare, batch property ops) is intentionally NOT re-exposed here —
  * clients should call the native `devonthink` server for those.

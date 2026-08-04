@@ -35,12 +35,63 @@ tools explicitly.
 
 ### Pre-Action Defaults (apply before every tool call)
 
+- **Searches cover OPEN databases only — open the closed ones first (see below)**
 - Smart group search: native \`search_records\` with \`group_uuid\` (the UUID from
   Devon's \`list_smart_groups\`) — returns proper DEVONthink UUIDs
 - Thread correlation: always attempt Tier 1 (EML headers) first, fall back to Tier 2/3
 - Mail import: report count of imported mails after script completes
 - Never delete records — only move to trash (recoverable; use native \`trash_record\`)
 - Never run Archive Mails without confirming user has reviewed inbox first
+
+### Database Availability — DO THIS BEFORE ANY "FIND EVERYTHING" SEARCH
+
+\`search_records\` and \`get_databases\` see **only the databases DEVONthink
+currently has open**. Closed databases are invisible: they produce no hits and
+no warning. A "nothing found" verdict drawn from a partial set is **wrong, not
+empty** — and archives are exactly where history lives, so the databases most
+likely to be closed are the ones most likely to hold the answer.
+
+So for any search that claims completeness — a person's history, everything on a
+topic, "search all my mail" — open everything first:
+
+**1. List what is open, and where those databases live.**
+\`\`\`bash
+osascript -e 'tell application id "DNtp" to get path of every database'
+\`\`\`
+
+**2. Scan those folders for databases that are NOT open.** Take the parent
+directory of each open database and list \`*.dtBase2\` in it. Anything on disk but
+absent from step 1 is closed. Ask the user for additional locations if the
+archive naming suggests gaps (e.g. \`Mail_2005_2009\` present, \`Mail_2010_2014\`
+missing from both lists).
+
+**3. Open each closed database — ONE PER CALL.**
+\`\`\`bash
+osascript -e 'tell application id "DNtp" to open database "/abs/path/Foo.dtBase2"'
+\`\`\`
+Opening a large archive can take **minutes**. Do NOT loop several \`open database\`
+statements inside one \`osascript\` call — the whole call dies on the 120 s Bash
+timeout and you cannot tell which databases made it. One open per call, generous
+timeout.
+
+**4. Clear the recovery dialog.** Opening a database may raise a *"database was
+recovered / issues were found"* sheet. It **blocks the open until dismissed** —
+the database never finishes opening and silently stays out of every subsequent
+search.
+\`\`\`bash
+osascript -e 'tell application "System Events" to tell process "DEVONthink" to get name of windows'
+\`\`\`
+If a dialog is present, click its **Repair** / **OK** button before continuing.
+
+**5. Verify before searching.**
+\`\`\`bash
+osascript -e 'tell application id "DNtp" to get name of every database'
+\`\`\`
+Every database from step 2 must appear. Only now run the search.
+
+When you report results, say which databases were in scope. If any stayed
+closed, name them — an unqualified "no history found" over a partial set is the
+failure this section exists to prevent.
 
 ### Tool Routing (Devon = ours, native = built-in \`devonthink\` server)
 
@@ -89,8 +140,11 @@ UUIDs are database-specific and must be looked up per installation.
 
 ### Prerequisites
 
-- DEVONthink must be running with the target database open
-- Database: configured per-user (check DEVONthink preferences for database path)
+- DEVONthink must be running
+- **Every database you intend to search must be OPEN** — see "Database
+  Availability" above; closed databases fail silently
+- Database locations are per-user; derive them from \`path of every database\`
+  rather than assuming a fixed folder
 `.trim();
 
 export const createExtendedServer = async (): Promise<{
@@ -100,7 +154,7 @@ export const createExtendedServer = async (): Promise<{
   const server = new Server(
     {
       name: "@tekmidian/devon",
-      version: "4.0.0",
+      version: "4.1.0",
     },
     {
       capabilities: {
@@ -108,6 +162,10 @@ export const createExtendedServer = async (): Promise<{
         resources: {},
         prompts: {},
       },
+      // Surfaced to the client at initialize — without this the guide is only
+      // reachable via the devonthink-instructions prompt, i.e. never read
+      // unless explicitly asked for.
+      instructions: INSTRUCTIONS,
     }
   );
 
